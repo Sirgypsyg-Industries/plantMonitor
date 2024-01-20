@@ -1,5 +1,5 @@
 #include <U8g2lib.h>
-#define sensor A0;
+#define sensor A0
 #define LED 13
 #define BUZZER 8
 
