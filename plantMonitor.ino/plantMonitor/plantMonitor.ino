@@ -3,8 +3,7 @@
  
 dht DHT;
 int var;
-int minTemp = 15;
-int curTemp = 10;
+int criticalTemp = 1;
 
 int maxSoilContent = 1;
 int minSoilContent = 1;
@@ -64,20 +63,31 @@ void loop(){
 
       case 'T':
         var = Serial.read();
-        minTemp = var;
+        criticalTemp = var;
         break;
       default:
         break;
     }
   }
 
-
+    //water content critical
     while(1023 - analogRead(A1) < criticalSoilContent){
       Serial.println("WATER ME");
       tone(2, 100);
       delay(1000);
     }
+  
+    //temperature critical
+    while(DHT.temperature < criticalTemp){
+      Serial.println("TOO COLD");
+      tone(2, 100);
+      delay(1000);
+    }
+    
+    //parameters ok
     noTone(2);
+
+    //cur soil Content
     Serial.print("Current soil Content = "); 
     int temp = 1023 - analogRead(A1);
     double curValue = static_cast<double>(temp - minSoilContent) / (maxSoilContent - minSoilContent) ;      
@@ -85,13 +95,12 @@ void loop(){
     Serial.println("%");
     delay(1000);
     
-    
+    //cur temperature
     DHT.read11(dht_apin);
-    Serial.print("humidity = ");
-    Serial.print(DHT.humidity); 
-    Serial.println("% ");
-
-   delay(1000);
+    Serial.print("temperature = ");
+    Serial.print(DHT.temperature); 
+    Serial.println("°C ");
+    delay(1000);
 
 
     
