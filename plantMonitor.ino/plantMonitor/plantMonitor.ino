@@ -61,7 +61,7 @@ void parametersDisplay(double t, double h){
   display.print("Humidity: ");
   display.setTextSize(2);
   display.setCursor(0, 45);
-  display.print(h);
+  display.print(h*100);
   display.print(" %"); 
   
   display.display(); 
@@ -117,36 +117,27 @@ void loop(){
 
   }
 
-    //water content critical
-    while(1023 - analogRead(A1) < criticalSoilContent){
+  DHT.read11(dht_apin); // read sensors
+  double curTemp = (DHT.temperature);
+  double curHumidity = 1023 - analogRead(A1);
+    
+
+    if(curHumidity < criticalSoilContent){  //water content critical
       stringDisplay("WATER ME");
       tone(2, 100);
       delay(1000);
     }
-  
-    //temperature critical
-    DHT.read11(dht_apin);
-    while(DHT.temperature < criticalTemp){
+    else if(curTemp < criticalTemp{ //temperature critical
       stringDisplay("TOO COLD");
       tone(2, 100);
       delay(1000);
     }
-    
-    //parameters ok
-    noTone(2);
+    else{ //parameters ok
+      noTone(2);
+      double curHumidity = static_cast<double>(curHumidity - minSoilContent) / (maxSoilContent - minSoilContent) ;      
 
-
-    //cur temperature
-    DHT.read11(dht_apin);
-    double curTemperature = (DHT.temperature);
-  
-
-    //cur soil Content
-    int temp = 1023 - analogRead(A1);
-    double curHumidity = static_cast<double>(temp - minSoilContent) / (maxSoilContent - minSoilContent) ;      
-    parametersDisplay(curTemperature, curHumidity);
-
-    
+      parametersDisplay(curTemp, curHumidity);
+    }
     delay(1000);
     
 
