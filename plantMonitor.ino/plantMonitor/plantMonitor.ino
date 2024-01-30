@@ -11,12 +11,11 @@
 
 Adafruit_SH1106 display(OLED_RESET);
 dht DHT;
-int var;
-double criticalTemp = 1;
+int criticalTemp = 1;
 
 int maxSoilContent = 1;
 int minSoilContent = 1;
-double criticalSoilContent = 1;
+int criticalSoilContent = 1;
 
 void stringDisplay(String s){
 
@@ -104,17 +103,39 @@ void setup(){
 void loop(){
   //Start of Program 
   if(Serial.available()) {
-    var = Serial.read();
+    char cvar = Serial.read();
 
-    if(var == 'S' || var == 'ST'){
-        var = Serial.read();
-        int temp = maxSoilContent - minSoilContent;
-        criticalSoilContent = temp * (var / 100) + minSoilContent;
-    }else if(var == 'T'){
-        var = Serial.read();
-        criticalTemp = var;
+    if(cvar == 'S'){
+      String message = "";
+      while (Serial.available() > 0) {
+        char nextChar = Serial.read();
+        if (nextChar == 'E') {
+          // Znaleziono znak końcowy, zakończ odczytywanie
+          break;
+        } else {
+          // Dodaj znak do komunikatu
+          message += nextChar;
+        }
+      }
+      double temp = message.toInt();
+      criticalSoilContent = (maxSoilContent - minSoilContent) * (temp / 100) + minSoilContent;
+
+    }else if(cvar == 'T'){
+      String message = "";
+      while (Serial.available() > 0) {
+        char nextChar = Serial.read();
+        if (nextChar == 'E') {
+          // Znaleziono znak końcowy, zakończ odczytywanie
+          break;
+        } else {
+          // Dodaj znak do komunikatu
+          message += nextChar;
+        }
+      }        
+      
+      criticalTemp = message.toInt();
     }
-
+    Serial.flush();
   }
 
   DHT.read11(dht_apin); // read sensors
@@ -124,26 +145,18 @@ void loop(){
 
     if(curHumidity < criticalSoilContent){  //water content critical
       stringDisplay("WATER ME");
-      tone(2, 100);
-      delay(1000);
+      tone(2, 1000);
     }
-    else if(curTemp < criticalTemp{ //temperature critical
+    else if(curTemp < criticalTemp){ //temperature critical
       stringDisplay("TOO COLD");
-      tone(2, 100);
-      delay(1000);
+      tone(2, 1000);
     }
     else{ //parameters ok
       noTone(2);
-      double curHumidity = static_cast<double>(curHumidity - minSoilContent) / (maxSoilContent - minSoilContent) ;      
+      double temp = static_cast<double>(curHumidity - minSoilContent) / (maxSoilContent - minSoilContent) ;      
 
-      parametersDisplay(curTemp, curHumidity);
+      parametersDisplay(curTemp, temp);
     }
-    delay(1000);
+    delay(150);
     
-
-
-    
-    //delay(150);//Wait 5 seconds before accessing sensor again.
-  //Fastest should be once every two seconds.
- 
 }
