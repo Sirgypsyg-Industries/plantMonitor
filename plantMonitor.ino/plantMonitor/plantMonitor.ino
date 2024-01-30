@@ -12,27 +12,36 @@
 Adafruit_SH1106 display(OLED_RESET);
 dht DHT;
 int criticalTemp = 1;
+const int buttonPin = 4;  // the number of the pushbutton pin
+int buttonState = 0;  // variable for reading the pushbutton status
 
 int maxSoilContent = 1;
 int minSoilContent = 1;
 int criticalSoilContent = 1;
+int curPhase = 0;
 
 void stringDisplay(String s){
 
   display.clearDisplay();
 
   // display temperature
+  display.setTextColor(WHITE);
   display.setTextSize(1);
   display.setCursor(0,0);
-  display.print("Temperature: ");
+  switch(curPhase){
+    case 0:
+      display.print("Calibration phase: ");
+      break;
+    case 1:
+      display.print("Plant Monitor: ");
+      break;
+    case 2:
+      display.print("WARNING:  ");
+  }
   display.setTextSize(2);
   display.setCursor(0,10);
   display.print(s);
   display.print(" ");
-  display.setTextSize(1);
-  display.cp437(true);
-  display.write(167);
-  display.setTextSize(2);
 
   display.display(); 
 }
@@ -67,20 +76,37 @@ void parametersDisplay(double t, double h){
 }
 
 void setLimits(){
-  delay(5000);
-  stringDisplay("poloz w suchym miejscu");
-  delay(8000);
+  stringDisplay("click to  calibrate");
+  delay(1000);
+  stringDisplay("3");
+  delay(1000);
+  stringDisplay("2");
+  delay(1000);
+  stringDisplay("1");
+  delay(1000);
+
+  stringDisplay("click to  set min");
+  buttonState = digitalRead(buttonPin);
+  while(buttonState == HIGH){
+    buttonState = digitalRead(buttonPin);
+  }
   minSoilContent = 1023 - analogRead(A1);
-  
-  //wloz czujnik do wody
-  stringDisplay("wloz czujnik do wody");
-  delay(8000);
+
+  delay(2000);
+  buttonState = 0;
+  buttonState = digitalRead(buttonPin);
+  stringDisplay("click to  set max");
+  while(buttonState == HIGH){
+    buttonState = digitalRead(buttonPin);
+  }
   maxSoilContent = 1023 - analogRead(A1);
   
   criticalSoilContent = (maxSoilContent - minSoilContent)*0.5 + minSoilContent;
   //czujnik skalibrowany
+  
+  stringDisplay("Calibrated");
   delay(2000);
-  stringDisplay("jest git");
+  curPhase = 1;
 }
  
 void setup(){
@@ -88,12 +114,16 @@ void setup(){
   Serial.begin(9600);
   pinMode(2,OUTPUT);
   pinMode(A1, INPUT);
+  pinMode(4,OUTPUT);
+  // initialize the pushbutton pin as an input:
+  pinMode(buttonPin, INPUT_PULLUP);
   
   display.begin(SH1106_SWITCHCAPVCC, 0x3C);
   delay(2000);
   display.clearDisplay();
   display.setTextColor(WHITE);
-
+  stringDisplay("WITAM");
+  delay(2000);
   setLimits();
 
  
@@ -144,15 +174,18 @@ void loop(){
     
 
     if(curHumidity < criticalSoilContent){  //water content critical
+      curPhase = 2;
       stringDisplay("WATER ME");
       tone(2, 1000);
     }
     else if(curTemp < criticalTemp){ //temperature critical
+      curPhase = 2;
       stringDisplay("TOO COLD");
-      tone(2, 1000);
+      tone(2, 2000);
     }
     else{ //parameters ok
       noTone(2);
+      curPhase = 1;
       double temp = static_cast<double>(curHumidity - minSoilContent) / (maxSoilContent - minSoilContent) ;      
 
       parametersDisplay(curTemp, temp);
