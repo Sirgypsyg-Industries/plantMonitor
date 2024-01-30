@@ -69,7 +69,7 @@ The OLED SSD1306 display provides real-time information about the plant's condit
 - Velshart
 
 ## Demo
-
+https://youtube.com/shorts/b1UFJXL4NuA?feature=share
 ![image](https://github.com/Sirgypsyg-Industries/plantMonitor/assets/107400417/a90a35b9-6be8-48d7-9c7d-5dbe7b189353)
 
 ## Circuit
